@@ -2,17 +2,19 @@ package pipeline
 
 import "fmt"
 
+// emit numbers to output channel
 func stage1(nums []int) <-chan int {
 	out := make(chan int)
 	go func() {
 		for _, n := range nums {
 			out <- n
 		}
-		close(out)
+		close(out) // signal end of data
 	}()
 	return out
 }
 
+// double each number
 func stage2(in <-chan int) <-chan int {
 	out := make(chan int)
 	go func() {
@@ -24,6 +26,7 @@ func stage2(in <-chan int) <-chan int {
 	return out
 }
 
+// increment each number
 func stage3(in <-chan int) <-chan int {
 	out := make(chan int)
 	go func() {
@@ -37,10 +40,13 @@ func stage3(in <-chan int) <-chan int {
 
 func Execute() {
 	nums := []int{1, 2, 3, 4, 5}
-	c1 := stage1(nums)
-	c2 := stage2(c1)
-	c3 := stage3(c2)
-	for result := range c3 {
+
+	// pipeline: emit -> double -> increment
+	c1 := stage1(nums) // channel emitting the input numbers
+	c2 := stage2(c1)   // channel with doubled numbers
+	c3 := stage3(c2)   // channel with incremented numbers
+
+	for result := range c3 { // consume results until channel is closed
 		fmt.Println(result)
 	}
 }

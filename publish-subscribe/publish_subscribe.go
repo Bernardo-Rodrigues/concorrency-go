@@ -20,14 +20,14 @@ func NewPubSub() *PubSub {
 func (ps *PubSub) Subscribe(topic string) <-chan string {
 	ch := make(chan string)
 	ps.mu.Lock()
-	ps.channels[topic] = append(ps.channels[topic], ch)
+	ps.channels[topic] = append(ps.channels[topic], ch) // add subscriber to topic
 	ps.mu.Unlock()
 	return ch
 }
 
 func (ps *PubSub) Publish(topic, msg string) {
 	ps.mu.Lock()
-	for _, ch := range ps.channels[topic] {
+	for _, ch := range ps.channels[topic] { // send message to all subscribers
 		ch <- msg
 	}
 	ps.mu.Unlock()
@@ -35,21 +35,24 @@ func (ps *PubSub) Publish(topic, msg string) {
 
 func (ps *PubSub) Close(topic string) {
 	ps.mu.Lock()
-	for _, ch := range ps.channels[topic] {
+	for _, ch := range ps.channels[topic] { // close all subscriber channels
 		close(ch)
 	}
 	ps.mu.Unlock()
 }
 
 func Execute() {
+	// create broker
 	ps := NewPubSub()
 
+	// subscribe to topic (returns message channel)
 	subscriber1 := ps.Subscribe("news")
 	subscriber2 := ps.Subscribe("news")
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 
+	// read until channel is closed
 	go func() {
 		defer wg.Done()
 		for msg := range subscriber1 {
@@ -57,6 +60,7 @@ func Execute() {
 		}
 	}()
 
+	// read until channel is closed
 	go func() {
 		defer wg.Done()
 		for msg := range subscriber2 {
@@ -64,10 +68,11 @@ func Execute() {
 		}
 	}()
 
+	// publish messages to topic
 	ps.Publish("news", "Breaking News!")
 	ps.Publish("news", "Another News!")
 
 	time.Sleep(time.Second)
-	ps.Close("news")
+	ps.Close("news") // close all subscriber channels
 	wg.Wait()
 }
