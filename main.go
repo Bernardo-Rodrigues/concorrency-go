@@ -10,34 +10,20 @@ import (
 	worker_pool "concorrency/worker-pool"
 )
 
-type ConcurrencyExample string
+type ConcurrencyExample func()
 
-const (
-	RATE_LIMITING       ConcurrencyExample = "rate-limiting"
-	FAN_OUT_FAN_IN      ConcurrencyExample = "fan-out-fan-in"
-	PIPELINE            ConcurrencyExample = "pipeline"
-	PUBLISH_SUBSCRIBE   ConcurrencyExample = "publish-subscribe"
-	SELECT_WITH_TIMEOUT ConcurrencyExample = "select-with-timeout"
-	SEMAPHORE           ConcurrencyExample = "semaphore"
-	WORKER_POOL         ConcurrencyExample = "worker-pool"
+var (
+	RATE_LIMITING       ConcurrencyExample = rate_limiting.Execute
+	FAN_OUT_FAN_IN      ConcurrencyExample = fan_out_fan_in.Execute
+	PIPELINE            ConcurrencyExample = pipeline.Execute
+	PUBLISH_SUBSCRIBE   ConcurrencyExample = publish_subscribe.Execute
+	SELECT_WITH_TIMEOUT ConcurrencyExample = select_with_timeout.Execute
+	SEMAPHORE           ConcurrencyExample = semaphore.Execute
+	WORKER_POOL         ConcurrencyExample = worker_pool.Execute
 )
 
 func main() {
-	examples := map[ConcurrencyExample]func(){
-		RATE_LIMITING:       rate_limiting.Execute,
-		FAN_OUT_FAN_IN:      fan_out_fan_in.Execute,
-		PIPELINE:            pipeline.Execute,
-		PUBLISH_SUBSCRIBE:   publish_subscribe.Execute,
-		SELECT_WITH_TIMEOUT: select_with_timeout.Execute,
-		SEMAPHORE:           semaphore.Execute,
-		WORKER_POOL:         worker_pool.Execute,
-	}
-
 	example := FAN_OUT_FAN_IN
 
-	if fn, ok := examples[example]; ok {
-		fn()
-	} else {
-		panic("example not found")
-	}
+	example()
 }
